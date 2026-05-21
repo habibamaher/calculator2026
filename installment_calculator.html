@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EWA — Installment Calculator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:      #002B5B;
+      --navy-mid:  #003D80;
+      --navy-light:#E8EFF7;
+      --teal:      #00796B;
+      --teal-light:#E0F2F1;
+      --gold:      #B8860B;
+      --gold-light:#FFF8E1;
+      --red:       #8B0000;
+      --red-light: #FFEBEE;
+      --green:     #1B5E20;
+      --green-light:#E8F5E9;
+      --border:    #D0D8E4;
+      --text:      #1A2A3A;
+      --muted:     #5A6A7A;
+      --bg:        #F2F5F9;
+      --white:     #FFFFFF;
+      --shadow:    0 2px 8px rgba(0,43,91,0.10);
+      --shadow-lg: 0 4px 20px rgba(0,43,91,0.13);
+    }
+
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      font-size: 13.5px;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--navy);
+      color: #fff;
+      padding: 0 40px;
+      display: flex;
+      align-items: stretch;
+      border-bottom: 3px solid var(--teal);
+    }
+    .header-logo {
+      display: flex;
+      align-items: center;
+      padding: 14px 28px 14px 0;
+      border-right: 1px solid rgba(255,255,255,0.15);
+      margin-right: 24px;
+      flex-shrink: 0;
+    }
+    .header-title {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 18px 0;
+    }
+    .header-title h1 { font-size: 16px; font-weight: 600; color: #fff; }
+    .header-title .doc-ref { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 2px; font-weight: 400; }
+    .header-meta {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.55);
+      padding: 18px 0;
+      text-align: right;
+    }
+    .header-meta span { display: block; }
+    .header-meta .val { color: rgba(255,255,255,0.85); font-weight: 500; }
+
+    /* ── MAIN LAYOUT ── */
+    main {
+      max-width: 1100px;
+      margin: 28px auto;
+      padding: 0 24px;
+    }
+
+    /* ── SECTION LABEL ── */
+    .section-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+      margin-top: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── PANEL ── */
+    .panel {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .panel-header {
+      background: var(--navy);
+      padding: 11px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .panel-header h2 {
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+    .panel-header .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--teal);
+      flex-shrink: 0;
+    }
+    .panel-body { padding: 20px 24px; }
+
+    /* ── FORM ── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 18px;
+      margin-top: 18px;
+    }
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .field input, .field select {
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      font-size: 13.5px;
+      font-family: inherit;
+      color: var(--text);
+      background: #FAFBFD;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      width: 100%;
+    }
+    .field input:focus, .field select:focus {
+      outline: none;
+      border-color: var(--navy-mid);
+      box-shadow: 0 0 0 3px rgba(0,61,128,0.08);
+      background: #fff;
+    }
+    .field input::placeholder { color: #b0b8c4; }
+
+    /* period toggle */
+    .period-wrap { display: flex; gap: 0; border: 1px solid var(--border); border-radius: 5px; overflow: hidden; }
+    .period-wrap input {
+      flex: 1;
+      border: none;
+      border-right: 1px solid var(--border);
+      border-radius: 0;
+      background: #FAFBFD;
+    }
+    .period-wrap input:focus { box-shadow: none; border-color: var(--border); background: #fff; }
+    .toggle-group { display: flex; flex-shrink: 0; }
+    .toggle-group button {
+      padding: 9px 16px;
+      border: none;
+      background: #f0f3f8;
+      font-size: 12px;
+      font-family: inherit;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      transition: background 0.12s, color 0.12s;
+    }
+    .toggle-group button:first-child { border-right: 1px solid var(--border); }
+    .toggle-group button.active { background: var(--navy); color: #fff; font-weight: 600; }
+
+    /* eligibility inline hint */
+    .elig-hint {
+      background: var(--navy-light);
+      border: 1px solid #bdd0e8;
+      border-radius: 5px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: var(--text);
+      line-height: 1.8;
+      align-self: flex-end;
+    }
+    .elig-hint .el { font-weight: 600; color: var(--navy); }
+    .elig-hint .vp { font-weight: 600; color: var(--gold); }
+    .elig-hint .pr { font-weight: 600; color: var(--red); }
+
+    /* ── RESULTS ── */
+    .results-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.6fr 1.6fr;
+      gap: 16px;
+    }
+    .r-card {
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 16px 18px;
+      text-align: center;
+      background: #FAFBFD;
+    }
+    .r-card .rc-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .r-card .rc-value {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--navy);
+      letter-spacing: -0.5px;
+      line-height: 1;
+    }
+    .r-card .rc-unit {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 5px;
+      font-weight: 400;
+    }
+    .r-card.primary {
+      background: var(--navy);
+      border-color: var(--navy);
+    }
+    .r-card.primary .rc-label { color: rgba(255,255,255,0.6); }
+    .r-card.primary .rc-value { color: #fff; font-size: 32px; }
+    .r-card.primary .rc-unit  { color: rgba(255,255,255,0.6); }
+
+    /* approval card */
+    .r-card.approval-card { text-align: left; display: flex; flex-direction: column; justify-content: space-between; }
+    .r-card.approval-card .rc-label { text-align: left; }
+    .badge {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      margin-top: 8px;
+    }
+    .badge-none  { background: var(--green-light);  color: var(--green); }
+    .badge-vp    { background: var(--gold-light);   color: var(--gold);  }
+    .badge-pres  { background: var(--red-light);    color: var(--red);   }
+    .badge-over  { background: var(--red-light);    color: var(--red);   }
+
+    .approval-note {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    /* warning banner */
+    .warn-banner {
+      margin-top: 14px;
+      padding: 10px 16px;
+      background: var(--gold-light);
+      border-left: 4px solid var(--gold);
+      border-radius: 0 5px 5px 0;
+      font-size: 12px;
+      color: var(--gold);
+      font-weight: 500;
+    }
+
+    /* formula strip */
+    .formula-strip {
+      background: var(--navy-light);
+      border: 1px solid #bdd0e8;
+      border-radius: 5px;
+      padding: 10px 16px;
+      font-size: 12px;
+      color: var(--navy);
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+    .formula-strip .f-label { font-weight: 600; margin-right: 4px; }
+
+    /* ── TABLE ── */
+    table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    thead tr { background: var(--navy); }
+    thead th {
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover td { background: var(--navy-light); }
+    tbody td { padding: 10px 14px; color: var(--text); vertical-align: middle; }
+    tbody td:first-child { font-weight: 500; }
+    .t-std  { color: var(--green); font-weight: 600; }
+    .t-vp   { color: var(--gold);  font-weight: 500; }
+    .t-pres { color: var(--red);   font-weight: 500; }
+    .t-na   { color: #b0b8c4; }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted);
+      padding: 20px 24px 32px;
+      border-top: 1px solid var(--border);
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-logo">
+    <!-- EWA Logo SVG -->
+    <svg width="190" height="52" viewBox="0 0 190 52" xmlns="http://www.w3.org/2000/svg" aria-label="EWA Logo">
+      <!-- Water drop -->
+      <path d="M 16,2 C 16,2 4,18 4,26 C 4,34.8 9.4,40 16,40 C 22.6,40 28,34.8 28,26 C 28,18 16,2 16,2 Z"
+            fill="#29ABE2"/>
+      <!-- Inner sun/gear circle (simplified) -->
+      <circle cx="16" cy="27" r="6" fill="#F5A623" opacity="0.9"/>
+      <circle cx="16" cy="27" r="4" fill="#002B5B"/>
+      <!-- EWA text -->
+      <text x="36" y="30" font-family="'Inter',Arial,sans-serif" font-weight="800"
+            font-size="26" fill="#29ABE2" letter-spacing="1">EWA</text>
+      <!-- Arabic text -->
+      <text x="36" y="43" font-family="'Inter',Arial,sans-serif" font-size="9.5"
+            fill="#29ABE2" font-weight="500" letter-spacing="0.3">هيئة الكهرباء والماء</text>
+      <!-- Vertical divider -->
+      <line x1="112" y1="6" x2="112" y2="46" stroke="#29ABE2" stroke-width="1.2" opacity="0.5"/>
+      <!-- English name -->
+      <text x="120" y="27" font-family="'Inter',Arial,sans-serif" font-size="9"
+            fill="rgba(255,255,255,0.75)" font-weight="500" letter-spacing="0.3">Electricity &amp; Water Authority</text>
+      <text x="120" y="40" font-family="'Inter',Arial,sans-serif" font-size="8.5"
+            fill="rgba(255,255,255,0.45)" font-weight="400">Kingdom of Bahrain</text>
+    </svg>
+  </div>
+  <div class="header-title">
+    <h1>Installment Plan Calculator</h1>
+    <div class="doc-ref">Payment &amp; Collection — Direct Debit / PDC Simulation &nbsp;·&nbsp; Internal Use Only</div>
+  </div>
+  <div class="header-meta">
+    <div><span>Version</span><span class="val">1.9</span></div>
+  </div>
+</header>
+
+<main>
+
+  <!-- SECTION: INPUTS -->
+  <div class="section-label">Account &amp; Simulation Inputs</div>
+  <div class="panel">
+    <div class="panel-header"><div class="dot"></div><h2>Account Details</h2></div>
+    <div class="panel-body">
+      <div class="form-grid">
+        <div class="field">
+          <label for="accountType">Account Type</label>
+          <select id="accountType" onchange="update()">
+            <option value="">— Select Account Type —</option>
+            <option value="subsidized">Subsidized</option>
+            <option value="nonSubBH">Non-Subsidized — Bahraini</option>
+            <option value="nonSubNonBH">Non-Subsidized — Non-Bahraini</option>
+            <option value="commercial">Commercial (Non-Domestic)</option>
+            <option value="legal">Legal Case (Inactive with Court Case)</option>
+            <option value="illegal">Illegal Connection</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="osBalance">Outstanding Balance (BHD)</label>
+          <input type="number" id="osBalance" step="0.001" min="0" placeholder="e.g. 480.560" oninput="update()" />
+        </div>
+        <div class="field">
+          <label for="ddiAmount">DDI Simulator — Fixed Amount (BHD)</label>
+          <input type="number" id="ddiAmount" step="0.01" min="0" placeholder="e.g. 218" oninput="update()" />
+        </div>
+      </div>
+
+      <div class="form-grid-2">
+        <div class="field">
+          <label>Requested Installment Period</label>
+          <div class="period-wrap">
+            <input type="number" id="periodValue" min="1" step="1" placeholder="e.g. 5" oninput="update()" />
+            <div class="toggle-group">
+              <button id="btnMonths" onclick="setPeriodUnit('months')" class="active">Months</button>
+              <button id="btnYears"  onclick="setPeriodUnit('years')">Years</button>
+            </div>
+          </div>
+        </div>
+        <div id="eligBox" class="elig-hint" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: RESULTS -->
+  <div id="resultsSection" style="display:none;">
+    <div class="section-label">Calculation Results</div>
+    <div class="panel">
+      <div class="panel-header"><div class="dot"></div><h2>Installment Breakdown</h2></div>
+      <div class="panel-body">
+        <div class="results-grid">
+          <div class="r-card">
+            <div class="rc-label">Avg. Monthly Consumption</div>
+            <div class="rc-value" id="rConsumption">—</div>
+            <div class="rc-unit">BHD / month</div>
+          </div>
+          <div class="r-card">
+            <div class="rc-label">Debt Recovery / Month</div>
+            <div class="rc-value" id="rDebt">—</div>
+            <div class="rc-unit">BHD / month</div>
+          </div>
+          <div class="r-card primary">
+            <div class="rc-label">Monthly Installment</div>
+            <div class="rc-value" id="rInstallment">—</div>
+            <div class="rc-unit" id="rPeriodLabel">BHD / month</div>
+          </div>
+          <div class="r-card approval-card">
+            <div class="rc-label">Approval Status</div>
+            <div>
+              <div id="rBadge"></div>
+              <div class="approval-note" id="rNote"></div>
+            </div>
+          </div>
+        </div>
+        <div id="warnBox"></div>
+        <div class="formula-strip">
+          <div><span class="f-label">Step 1:</span> Monthly Consumption = DDI − (Balance ÷ 12)</div>
+          <div><span class="f-label">Step 2:</span> Installment = (Balance ÷ Period) + Monthly Consumption</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: REFERENCE -->
+  <div class="section-label">Eligibility Reference</div>
+  <div class="panel">
+    <div class="panel-header"><div class="dot"></div><h2>Installment Period Limits by Account Type</h2></div>
+    <div class="panel-body" style="padding:0;">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:28%">Account Type</th>
+            <th style="width:20%">Standard Maximum</th>
+            <th style="width:26%">With VP Approval</th>
+            <th style="width:26%">With President Approval</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Subsidized</td>
+            <td class="t-std">36 months (3 years)</td>
+            <td class="t-vp">Up to 60 months (5 years)</td>
+            <td class="t-pres">Up to 84 months (7 years)</td>
+          </tr>
+          <tr>
+            <td>Non-Subsidized — Bahraini</td>
+            <td class="t-std">12 months (1 year)</td>
+            <td class="t-vp">Up to 24 months (2 years)</td>
+            <td class="t-na">Not Applicable</td>
+          </tr>
+          <tr>
+            <td>Non-Subsidized — Non-Bahraini</td>
+            <td class="t-std">12 months (1 year)</td>
+            <td class="t-vp">Up to 24 months (2 years)</td>
+            <td class="t-na">Not Applicable</td>
+          </tr>
+          <tr>
+            <td>Commercial (Non-Domestic)</td>
+            <td class="t-std">6 months</td>
+            <td class="t-vp">Up to 12 months (1 year)</td>
+            <td class="t-pres">Up to 18 months</td>
+          </tr>
+          <tr>
+            <td>Legal Case (Inactive with Court Case)</td>
+            <td class="t-std">12 months (1 year)</td>
+            <td class="t-vp">Extended — case by case</td>
+            <td class="t-na">Not Applicable</td>
+          </tr>
+          <tr>
+            <td>Illegal Connection</td>
+            <td class="t-std">36 months (3 years)</td>
+            <td class="t-vp">Extended beyond 3 years</td>
+            <td class="t-na">Not Applicable</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  EWA — Payment &amp; Collection · Direct Debit &nbsp;|&nbsp;
+  Internal Tool — Not for External Distribution
+</footer>
+
+<script>
+  let periodUnit = 'months';
+
+  function setPeriodUnit(unit) {
+    periodUnit = unit;
+    document.getElementById('btnMonths').classList.toggle('active', unit === 'months');
+    document.getElementById('btnYears').classList.toggle('active',  unit === 'years');
+    update();
+  }
+
+  const TYPES = {
+    subsidized:  { label: 'Subsidized',                      stdMonths: 36, vpMonths: 60,   presMonths: 84   },
+    nonSubBH:    { label: 'Non-Subsidized Bahraini',         stdMonths: 12, vpMonths: 24,   presMonths: null },
+    nonSubNonBH: { label: 'Non-Subsidized Non-Bahraini',     stdMonths: 12, vpMonths: 24,   presMonths: null },
+    commercial:  { label: 'Commercial (Non-Domestic)',        stdMonths: 6,  vpMonths: 12,   presMonths: 18   },
+    legal:       { label: 'Legal Case',                       stdMonths: 12, vpMonths: null, presMonths: null },
+    illegal:     { label: 'Illegal Connection',               stdMonths: 36, vpMonths: null, presMonths: null },
+  };
+
+  function f2(n) { return isNaN(n) ? '—' : n.toFixed(2); }
+
+  function monthLabel(m) {
+    let s = m + ' month' + (m !== 1 ? 's' : '');
+    if (m % 12 === 0) s += ' (' + (m/12) + ' year' + (m/12 !== 1 ? 's' : '') + ')';
+    return s;
+  }
+
+  function update() {
+    const typeKey      = document.getElementById('accountType').value;
+    const balance      = parseFloat(document.getElementById('osBalance').value);
+    const ddi          = parseFloat(document.getElementById('ddiAmount').value);
+    const periodRaw    = parseFloat(document.getElementById('periodValue').value);
+    const periodMonths = periodUnit === 'years' ? periodRaw * 12 : periodRaw;
+    const cfg          = TYPES[typeKey];
+
+    // Eligibility hint
+    const eBox = document.getElementById('eligBox');
+    if (!cfg) {
+      eBox.style.display = 'none';
+    } else {
+      const vpStr   = cfg.vpMonths   ? monthLabel(cfg.vpMonths)   : 'Case-by-case (VP)';
+      const presStr = cfg.presMonths ? monthLabel(cfg.presMonths) : 'N/A';
+      eBox.style.display = 'block';
+      eBox.innerHTML =
+        '<span class="el">Standard:</span> ' + monthLabel(cfg.stdMonths) +
+        ' &nbsp;&nbsp;<span class="vp">| VP Approval:</span> ' + vpStr +
+        ' &nbsp;&nbsp;<span class="pr">| President Approval:</span> ' + presStr;
+    }
+
+    // Guard
+    if (!cfg || isNaN(balance) || isNaN(ddi) || isNaN(periodMonths) || periodMonths <= 0) {
+      document.getElementById('resultsSection').style.display = 'none';
+      return;
+    }
+
+    const consumption = ddi - (balance / 12);
+    const debtPart    = balance / periodMonths;
+    const installment = consumption + debtPart;
+
+    // Approval
+    let badgeClass = '', badgeText = '', note = '', warn = '';
+
+    if (periodMonths <= cfg.stdMonths) {
+      badgeClass = 'badge-none'; badgeText = 'No Approval Required';
+      note = 'Within standard limit for this account type.';
+    } else if (cfg.vpMonths !== null && periodMonths <= cfg.vpMonths) {
+      badgeClass = 'badge-vp'; badgeText = 'VP Approval Required';
+      note = 'Period exceeds standard limit. Requires Vice President sign-off.';
+    } else if (cfg.presMonths !== null && periodMonths <= cfg.presMonths) {
+      badgeClass = 'badge-pres'; badgeText = 'President Approval Required';
+      note = 'Period exceeds VP limit. Requires President sign-off.';
+    } else if (cfg.vpMonths === null && periodMonths > cfg.stdMonths) {
+      badgeClass = 'badge-vp'; badgeText = 'VP Approval Required';
+      note = 'Extended period — subject to VP review on a case-by-case basis.';
+    } else {
+      badgeClass = 'badge-over'; badgeText = 'Exceeds Maximum — Ineligible';
+      note = 'The requested period exceeds the maximum allowable for this account type.';
+      warn = 'Requested period of ' + monthLabel(periodMonths) + ' exceeds the maximum allowed. Please review the eligibility table below.';
+    }
+
+    document.getElementById('rConsumption').textContent = f2(consumption);
+    document.getElementById('rDebt').textContent        = f2(debtPart);
+    document.getElementById('rInstallment').textContent = f2(installment);
+    document.getElementById('rPeriodLabel').textContent = 'BHD / month  ·  over ' + monthLabel(periodMonths);
+    document.getElementById('rBadge').innerHTML = '<span class="badge ' + badgeClass + '">' + badgeText + '</span>';
+    document.getElementById('rNote').textContent  = note;
+    document.getElementById('warnBox').innerHTML  = warn
+      ? '<div class="warn-banner">&#9888;&nbsp; ' + warn + '</div>' : '';
+    document.getElementById('resultsSection').style.display = 'block';
+  }
+</script>
+</body>
+</html>
